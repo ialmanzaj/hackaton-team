@@ -6,7 +6,7 @@ const BASE_WIDTH = 1600;
 const BASE_HEIGHT = 900;
 const BOTTOM_TAG_TEXT_LEFT = 'ai-hackathon.co';
 const BOTTOM_TAG_TEXT_RIGHT = '#LATAMACELERA';
-const BOTTOM_TAG_HEIGHT = 40;
+const BOTTOM_TAG_HEIGHT = 80;
 const SAFE_PADDING = 120; // Left/Right/Top padding
 const FONT_FAMILY = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'; // With fallback
 
@@ -26,10 +26,13 @@ function wrapText(context: CanvasRenderingContext2D, text: string, x: number, y:
   const words = text.split(' ');
   let line = '';
   let currentY = y;
-  const limitY = maxHeight ? maxHeight - lineHeight : Infinity; // Calculate limit considering line height
+  // Adjust limit calculation to use the actual bottom edge based on maxHeight
+  const limitY = maxHeight ? maxHeight : Infinity;
 
   for (let n = 0; n < words.length; n++) {
-    if (currentY > limitY) break; // Stop if we exceed the max height
+    // Check if adding the next line *would* exceed the limit
+    // Also ensure we don't break immediately if the first line itself is too long
+    if (currentY + lineHeight > limitY && line !== '' && n > 0) break;
 
     const testLine = line + words[n] + ' ';
     const metrics = context.measureText(testLine);
@@ -38,23 +41,35 @@ function wrapText(context: CanvasRenderingContext2D, text: string, x: number, y:
       context.fillText(line, x, currentY);
       line = words[n] + ' ';
       currentY += lineHeight;
-      if (currentY > limitY) { // Check again after incrementing Y
-        line = '...'; // Indicate truncation if needed, or just break
+      // Check *again* after incrementing Y to prevent drawing below limitY
+      if (currentY + lineHeight > limitY) {
+        // Draw the last fitting line and indicate truncation
+        if (currentY <= limitY) {
+            context.fillText(line.trim() + '...', x, currentY);
+        } else {
+            // If even the previous line didn't fit, we might need different handling,
+            // but for now, break and rely on the final check.
+        }
+        line = ''; // Clear line as we've drawn truncated text
         break;
       }
     } else {
       line = testLine;
     }
   }
-  // Draw the last line only if it fits and wasn't truncated
-  if (currentY <= limitY && line.trim() !== '...') {
-    context.fillText(line, x, currentY);
-    return currentY + lineHeight; // Return the Y position after the last line
-  } else if (currentY <= limitY && line.trim() === '...') {
-     context.fillText(line, x, currentY); // Draw ellipsis if needed
-     return currentY + lineHeight; 
+  // Draw the final line if it wasn't truncated and fits
+  if (line !== '' && currentY + lineHeight <= limitY) {
+    context.fillText(line.trim(), x, currentY);
+    return currentY + lineHeight; // Return the Y position *after* the last drawn line
+  } else if (line !== '' && currentY <= limitY) {
+      // If the line technically fits but adding lineHeight would exceed, draw it without advancing Y
+      context.fillText(line.trim(), x, currentY);
+      return currentY; // Return current Y as it's the bottom
   }
-  return currentY; // Return the Y position where it stopped
+
+  // If loop finished or broke due to height limit, return the Y where it stopped
+  // (This could be the start Y if the first line didn't fit)
+  return currentY; 
 }
 
 const CardCanvas: React.FC<CardCanvasProps> = ({ 
@@ -88,7 +103,8 @@ const CardCanvas: React.FC<CardCanvasProps> = ({
       const { bg: bgColor, text: textColor } = currentTheme;
       const headlineSize = fontSizes?.headline ?? 96;
       const lookingForSize = fontSizes?.lookingFor ?? 48;
-      const maxContentHeight = BASE_HEIGHT - BOTTOM_TAG_HEIGHT;
+      // Calculate the maximum Y coordinate for *all* content, respecting top padding and bottom tag height
+      const maxContentY = BASE_HEIGHT - BOTTOM_TAG_HEIGHT - SAFE_PADDING; 
 
       // --- Drawing Logic from PRD (Updated) ---
 
@@ -105,21 +121,31 @@ const CardCanvas: React.FC<CardCanvasProps> = ({
       ctx.textAlign = 'left'; // Updated alignment
       ctx.fillText(teamName, SAFE_PADDING, SAFE_PADDING); // Updated position
 
-      // 3. Draw idea text block (auto-fit, with maxHeight constraint)
+      // 3. Draw idea text block (auto-fit, respecting maxContentY)
       ctx.font = `700 ${headlineSize}px ${FONT_FAMILY}`;
       ctx.textAlign = 'left';
       const ideaMaxWidth = BASE_WIDTH - (SAFE_PADDING * 2);
       const ideaLineHeight = headlineSize * 1.2; 
-      const ideaStartY = 240; 
-      const ideaBlockBottom = wrapText(ctx, idea, SAFE_PADDING, ideaStartY, ideaMaxWidth, ideaLineHeight, maxContentHeight);
+      // Start idea text below the team name + some spacing, but respect SAFE_PADDING
+      const ideaStartY = SAFE_PADDING + 20 + 40; // Team name height + spacing, ensure >= SAFE_PADDING
+      // Pass the calculated maxContentY to wrapText
+      const ideaBlockBottom = wrapText(ctx, idea, SAFE_PADDING, ideaStartY, ideaMaxWidth, ideaLineHeight, maxContentY);
 
       // 4. Draw lookingFor line
       ctx.font = `400 ${lookingForSize}px ${FONT_FAMILY}`;
       ctx.textAlign = 'left';
-      const lookingForY = ideaBlockBottom + 80;
-      // Ensure lookingFor doesn't overlap bottom tag area (check against maxContentHeight)
-      if (lookingForY < maxContentHeight - lookingForSize) {
-        ctx.fillText(`Looking for: ${lookingFor}`, SAFE_PADDING, lookingForY);
+      const lookingForY = ideaBlockBottom + 80; // Spacing below idea block
+      // Ensure lookingFor line itself doesn't start below maxContentY
+      if (lookingForY < maxContentY) { 
+        // Also check if the *bottom* of the lookingFor line would exceed maxContentY
+        if (lookingForY + lookingForSize <= maxContentY) {
+             ctx.fillText(`Looking for: ${lookingFor}`, SAFE_PADDING, lookingForY);
+        } else {
+            console.warn("'Looking For' text truncated due to space constraints.");
+            // Optionally draw truncated text or nothing
+        }
+      } else {
+           console.warn("'Looking For' text skipped entirely due to space constraints.");
       }
 
       // Draw Bottom Tags
