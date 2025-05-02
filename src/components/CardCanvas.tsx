@@ -14,7 +14,7 @@ interface CardCanvasProps {
   theme: ThemeName;
   teamName: string;
   idea: string;
-  lookingFor: string;
+  lookingFor?: string;
   fontSizes?: {
     headline: number;
     lookingFor: number;
@@ -45,10 +45,10 @@ function wrapText(context: CanvasRenderingContext2D, text: string, x: number, y:
       if (currentY + lineHeight > limitY) {
         // Draw the last fitting line and indicate truncation
         if (currentY <= limitY) {
-            context.fillText(line.trim() + '...', x, currentY);
+          context.fillText(line.trim() + '...', x, currentY);
         } else {
-            // If even the previous line didn't fit, we might need different handling,
-            // but for now, break and rely on the final check.
+          // If even the previous line didn't fit, we might need different handling,
+          // but for now, break and rely on the final check.
         }
         line = ''; // Clear line as we've drawn truncated text
         break;
@@ -62,22 +62,22 @@ function wrapText(context: CanvasRenderingContext2D, text: string, x: number, y:
     context.fillText(line.trim(), x, currentY);
     return currentY + lineHeight; // Return the Y position *after* the last drawn line
   } else if (line !== '' && currentY <= limitY) {
-      // If the line technically fits but adding lineHeight would exceed, draw it without advancing Y
-      context.fillText(line.trim(), x, currentY);
-      return currentY; // Return current Y as it's the bottom
+    // If the line technically fits but adding lineHeight would exceed, draw it without advancing Y
+    context.fillText(line.trim(), x, currentY);
+    return currentY; // Return current Y as it's the bottom
   }
 
   // If loop finished or broke due to height limit, return the Y where it stopped
   // (This could be the start Y if the first line didn't fit)
-  return currentY; 
+  return currentY;
 }
 
-const CardCanvas: React.FC<CardCanvasProps> = ({ 
+const CardCanvas: React.FC<CardCanvasProps> = ({
   theme = 'default', // Add default theme value
   teamName,
   idea,
   lookingFor,
-  fontSizes 
+  fontSizes
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -104,7 +104,7 @@ const CardCanvas: React.FC<CardCanvasProps> = ({
       const headlineSize = fontSizes?.headline ?? 96;
       const lookingForSize = fontSizes?.lookingFor ?? 48;
       // Calculate the maximum Y coordinate for *all* content, respecting top padding and bottom tag height
-      const maxContentY = BASE_HEIGHT - BOTTOM_TAG_HEIGHT - SAFE_PADDING; 
+      const maxContentY = BASE_HEIGHT - BOTTOM_TAG_HEIGHT - SAFE_PADDING;
 
       // --- Drawing Logic from PRD (Updated) ---
 
@@ -125,39 +125,41 @@ const CardCanvas: React.FC<CardCanvasProps> = ({
       ctx.font = `700 ${headlineSize}px ${FONT_FAMILY}`;
       ctx.textAlign = 'left';
       const ideaMaxWidth = BASE_WIDTH - (SAFE_PADDING * 2);
-      const ideaLineHeight = headlineSize * 1.2; 
+      const ideaLineHeight = headlineSize * 1.2;
       // Start idea text below the team name + some spacing, but respect SAFE_PADDING
       const ideaStartY = SAFE_PADDING + 20 + 40; // Team name height + spacing, ensure >= SAFE_PADDING
       // Pass the calculated maxContentY to wrapText
       const ideaBlockBottom = wrapText(ctx, idea, SAFE_PADDING, ideaStartY, ideaMaxWidth, ideaLineHeight, maxContentY);
 
-      // 4. Draw lookingFor line
-      ctx.font = `400 ${lookingForSize}px ${FONT_FAMILY}`;
-      ctx.textAlign = 'left';
-      const lookingForY = ideaBlockBottom + 80; // Spacing below idea block
-      // Ensure lookingFor line itself doesn't start below maxContentY
-      if (lookingForY < maxContentY) {
-        // Also check if the *bottom* of the lookingFor line would exceed maxContentY
-        if (lookingForY + lookingForSize <= maxContentY) {
-             ctx.fillText(`Buscando: ${lookingFor}`, SAFE_PADDING, lookingForY); // Spanish translation
-        } else {
+      // 4. Draw lookingFor line (conditionally)
+      if (lookingFor && lookingFor.trim() !== '') { // Check if lookingFor is provided and not empty
+        ctx.font = `400 ${lookingForSize}px ${FONT_FAMILY}`;
+        ctx.textAlign = 'left';
+        const lookingForY = ideaBlockBottom + 80; // Spacing below idea block
+        // Ensure lookingFor line itself doesn't start below maxContentY
+        if (lookingForY < maxContentY) {
+          // Also check if the *bottom* of the lookingFor line would exceed maxContentY
+          if (lookingForY + lookingForSize <= maxContentY) {
+            ctx.fillText(`Buscando: ${lookingFor}`, SAFE_PADDING, lookingForY); // Spanish translation
+          } else {
             console.warn("Texto 'Buscando' truncado por falta de espacio."); // Spanish translation
             // Optionally draw truncated text or nothing
+          }
+        } else {
+          console.warn("Texto 'Buscando' omitido completamente por falta de espacio."); // Spanish translation
         }
-      } else {
-           console.warn("Texto 'Buscando' omitido completamente por falta de espacio."); // Spanish translation
-      }
+      } // End conditional rendering for lookingFor
 
       // Draw Bottom Tags
       ctx.font = `600 24px ${FONT_FAMILY}`;
-      ctx.fillStyle = '#FF2A2A'; // Always red
+      ctx.fillStyle = textColor; // Use theme text color, not hardcoded red
       ctx.textBaseline = 'middle'; // Align vertically in the bar
       const safeBottom = BASE_HEIGHT - BOTTOM_TAG_HEIGHT;
       const tagY = safeBottom + (BOTTOM_TAG_HEIGHT / 2); // Center vertically
-      
+
       // Left Tag
       ctx.textAlign = 'left';
-      ctx.fillText(BOTTOM_TAG_TEXT_LEFT, SAFE_PADDING, tagY); 
+      ctx.fillText(BOTTOM_TAG_TEXT_LEFT, SAFE_PADDING, tagY);
 
       // Right Tag
       ctx.textAlign = 'right';

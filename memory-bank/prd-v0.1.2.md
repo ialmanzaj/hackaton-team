@@ -5,7 +5,7 @@
 | Change           | Detail                                                                              |
 | :--------------- | :---------------------------------------------------------------------------------- |
 | Background       | Solid white (#FFFFFF)                                                               |
-| Brand color (text) | Keep the hack-pop red (#FF2A2A) for all headings & body text                        |
+| Brand color (text) | Keep the hack-pop red (#000000) for all headings & body text                        |
 | Permanent tag    | `ai-hackathon.co` — locked to the bottom-left corner, red text, 24 px |
 | Additional Tag   | `#LATAMACELERA` — locked to the bottom-right corner, red text, 24 px |
 
@@ -13,6 +13,7 @@
 
 - **F1-a:** `CardCanvas` must reserve a 80 px × full-width strip at the bottom for the permanent tags safe area.
 - **F1-b:** The bottom tags are not editable and auto-render `ai-hackathon.co` (left) and `#LATAMACELERA` (right).
+- **F1-c:** The `lookingFor` input field (displaying "Buscando: ...") is now optional. If not provided, it is omitted from the canvas, but the layout spacing remains static.
 - **F2 (rendering):** Switch canvas base color to white; keep text color constants. Introduce a new theme `white`.
 - **F3 (exports):** Maintain same PNG sizes (X, LinkedIn, IG) but ensure both bottom tags remain visible after cropping / aspect-ratio scaling. Export logic uses `scaleAndCrop` (center-crop "cover" behavior) on the 1600x900 base image. The bottom 80px tag bar is inherently preserved. Exported images always use the desktop headline font size (96px).
 
@@ -27,6 +28,7 @@
 │  (auto-wrapped)                                             │
 │                                                             │
 │  Looking for: roles                                         │
+│  (auto-wrapped)                                             │
 │                                                             │
 ├──────────────────────────────────────────────────────────────┤ ← 80 px high
 │ ai-hackathon.co                             #LATAMACELERA │
@@ -48,6 +50,7 @@
 | teamName   | string                | rendered top-left.      |
 | idea       | string                | main headline.          |
 | lookingFor | string                | roles line.             |
+| lookingFor?| string                | Optional roles line. Rendered as "Buscando: [value]" if provided. |
 | fontSizes? | `{ headline: number, lookingFor: number }` | Optional font sizes (used by preview wrapper for mobile scaling). Defaults internally if not provided. |
 
 **Theme Handling**
@@ -57,8 +60,8 @@ A new theme `white` should be added to the existing `THEMES` map. The default th
 ```ts
 // Example structure (adapt to actual file)
 export const THEMES = {
-  default: { bg: '#000000', text: '#FF2A2A' },
-  white: { bg: '#FFFFFF', text: '#FF2A2A' }   // NEW
+  default: { bg: '#000000', text: '#000000' },
+  white: { bg: '#FFFFFF', text: '#000000' }   // NEW
 } as const;
 
 // CardCanvas usage:
@@ -75,7 +78,7 @@ export const THEMES = {
 
 ```ts
 const BG_COLOR = '#FFFFFF'; // For white theme
-const TEXT_COLOR = '#FF2A2A'; // For white theme
+const TEXT_COLOR = '#000000'; // For white theme
 const BOTTOM_TAG_TEXT_LEFT = 'ai-hackathon.co';
 const BOTTOM_TAG_TEXT_RIGHT = '#LATAMACELERA';
 const BOTTOM_TAG_HEIGHT = 80; // px on 1600×900; scale proportionally
@@ -88,16 +91,16 @@ const SAFE_PADDING = 120;
 
 1.  Fill background (`THEMES[theme].bg`).
 2.  Draw team name (align left, x = 120 px, y = 120 px, color=`THEMES[theme].text`, font=20px bold Inter).
-3.  Draw idea text block (auto-fit inside width-120 padding, start y = 240 px, color=`THEMES[theme].text`, font= `fontSizes.headline` or 96px, weight 700 Inter).
-4.  Draw lookingFor line (y = ideaBlockBottom+80, color=`THEMES[theme].text`, font=`fontSizes.lookingFor` or 48px Inter).
+3.  Draw idea text block (auto-fit inside `width - 2*SAFE_PADDING`, start y = `SAFE_PADDING + 20 + 40`, color=`THEMES[theme].text`, font= `fontSizes.headline` or 96px, weight 700 Inter, max height `BASE_HEIGHT - BOTTOM_TAG_HEIGHT - SAFE_PADDING`).
+4.  **Conditionally** draw `lookingFor` line: If `lookingFor` prop is provided and not empty, draw `"Buscando: " + lookingFor` at (y = ideaBlockBottom+80, color=`THEMES[theme].text`, font=`fontSizes.lookingFor` or 48px Inter). Ensure text doesn't overflow the bottom safe area.
 5.  Calculate bottom tag Y position: `const safeBottom = BASE_HEIGHT - BOTTOM_TAG_HEIGHT; const tagY = safeBottom + (BOTTOM_TAG_HEIGHT / 2); // Center vertically`
-6.  Draw red `ai-hackathon.co` text at (x = SAFE_PADDING, y = `tagY`, color='#FF2A2A', font=24px, weight 600 Inter, align left, baseline middle).
-7.  Draw red `#LATAMACELERA` text at (x = BASE_WIDTH - SAFE_PADDING, y = `tagY`, color='#FF2A2A', font=24px, weight 600 Inter, align right, baseline middle).
+6.  Draw red `ai-hackathon.co` text at (x = SAFE_PADDING, y = `tagY`, color='#000000', font=24px, weight 600 Inter, align left, baseline middle).
+7.  Draw red `#LATAMACELERA` text at (x = BASE_WIDTH - SAFE_PADDING, y = `tagY`, color='#000000', font=24px, weight 600 Inter, align right, baseline middle).
 
 ## 4 · QA Checklist Additions
 
 - [ ] ✅ Both bottom tags (`ai-hackathon.co`, `#LATAMACELERA`) visible in every export size, never cropped.
-- [ ] ✅ Contrast ratio red (#FF2A2A) on white ≥ 4.0.
+- [ ] ✅ Contrast ratio red (#000000) on white ≥ 4.0.
 - [ ] ✅ No other text overlaps the 80 px bottom tag bar.
 - [ ] ✅ 'Inter' font loads correctly and is used for all text elements on the canvas. Fallback font used if 'Inter' fails.
 
@@ -110,5 +113,5 @@ const SAFE_PADDING = 120;
     - Bottom tags rendering (left and right aligned).
 - Adjust auto-fit algorithm to respect the `BOTTOM_TAG_HEIGHT` (now 80px) bottom safe area (if text could previously flow into this area). Ensure `maxHeight` calculation is `BASE_HEIGHT - BOTTOM_TAG_HEIGHT - SAFE_PADDING`.
 - Pass dynamic `fontSizes` from the preview wrapper for mobile headline adjustment (if not already done).
-- Regression test for 80-char idea & long team names. Ensure text stays above the 80px bottom safe area.
+- Regression test: Verify cards render correctly with and *without* the `lookingFor` text. Ensure text stays above the 80px bottom safe area.
 - Replace marketing screenshots in README / landing page to reflect white-theme. 

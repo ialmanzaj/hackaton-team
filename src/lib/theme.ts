@@ -1,6 +1,6 @@
 export const THEMES = {
-  default: { bg: '#000000', text: '#FF2A2A' }, // Assuming default was black BG from clarification
-  white: { bg: '#FFFFFF', text: '#FF2A2A' }   // New theme from PRD
+  default: { bg: '#000000', text: '#ffffff' }, // Assuming default was black BG from clarification
+  white: { bg: '#ffffff', text: '#000000' }   // New theme from PRD
 } as const;
 
 export type ThemeName = keyof typeof THEMES;
