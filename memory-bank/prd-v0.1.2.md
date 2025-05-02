@@ -13,7 +13,7 @@
 
 - **F1-a:** `CardCanvas` must reserve a 80 px × full-width strip at the bottom for the permanent tags safe area.
 - **F1-b:** The bottom tags are not editable and auto-render `ai-hackathon.co` (left) and `#LATAMACELERA` (right).
-- **F2 (rendering):** Switch canvas base color to white; keep text color constants. Introduce a new theme `latamWhite`.
+- **F2 (rendering):** Switch canvas base color to white; keep text color constants. Introduce a new theme `white`.
 - **F3 (exports):** Maintain same PNG sizes (X, LinkedIn, IG) but ensure both bottom tags remain visible after cropping / aspect-ratio scaling. Export logic uses `scaleAndCrop` (center-crop "cover" behavior) on the 1600x900 base image. The bottom 80px tag bar is inherently preserved. Exported images always use the desktop headline font size (96px).
 
 ## 2 · Revised Canvas Layout
@@ -44,7 +44,7 @@
 
 | Prop       | Type                  | Purpose                 |
 | :--------- | :-------------------- | :---------------------- |
-| theme      | string | default "default" | selects palette via `THEMES` map. New: "latamWhite" |
+| theme      | string | default "default" | selects palette via `THEMES` map. New: "white" |
 | teamName   | string                | rendered top-left.      |
 | idea       | string                | main headline.          |
 | lookingFor | string                | roles line.             |
@@ -52,13 +52,13 @@
 
 **Theme Handling**
 
-A new theme `latamWhite` should be added to the existing `THEMES` map. The default theme remains unchanged.
+A new theme `white` should be added to the existing `THEMES` map. The default theme remains unchanged.
 
 ```ts
 // Example structure (adapt to actual file)
 export const THEMES = {
   default: { bg: '#000000', text: '#FF2A2A' },
-  latamWhite: { bg: '#FFFFFF', text: '#FF2A2A' }   // NEW
+  white: { bg: '#FFFFFF', text: '#FF2A2A' }   // NEW
 } as const;
 
 // CardCanvas usage:
@@ -74,8 +74,8 @@ export const THEMES = {
 **Internal constants**
 
 ```ts
-const BG_COLOR = '#FFFFFF'; // For latamWhite theme
-const TEXT_COLOR = '#FF2A2A'; // For latamWhite theme
+const BG_COLOR = '#FFFFFF'; // For white theme
+const TEXT_COLOR = '#FF2A2A'; // For white theme
 const BOTTOM_TAG_TEXT_LEFT = 'ai-hackathon.co';
 const BOTTOM_TAG_TEXT_RIGHT = '#LATAMACELERA';
 const BOTTOM_TAG_HEIGHT = 80; // px on 1600×900; scale proportionally
@@ -103,7 +103,7 @@ const SAFE_PADDING = 120;
 
 ## 5 · Next Steps for Dev
 
-- Update `theme.ts` (or equivalent) with the `latamWhite` theme definition.
+- Update `theme.ts` (or equivalent) with the `white` theme definition.
 - Implement 'Inter' font loading (e.g., add Google Fonts link to HTML head) and ensure canvas rendering waits for font readiness.
 - Update `CardCanvas` constants (`BOTTOM_TAG_TEXT_LEFT`, `BOTTOM_TAG_TEXT_RIGHT`) and drawing logic for:
     - Team name position (top-left).

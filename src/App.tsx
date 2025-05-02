@@ -34,10 +34,10 @@ const useMediaQuery = (query: string): boolean => {
 };
 
 function App() {
-  const [theme, setTheme] = useState<ThemeName>('latamWhite');
-  const [teamName, setTeamName] = useState('Team Name');
-  const [idea, setIdea] = useState('Your Big Idea Headline Here - Keep it Punchy!');
-  const [lookingFor, setLookingFor] = useState('Designers, Devs, PMs');
+  const [theme, setTheme] = useState<ThemeName>('white');
+  const [teamName, setTeamName] = useState('Nombre del Equipo');
+  const [idea, setIdea] = useState('El Título de Tu Gran Idea Aquí - ¡Sé Conciso!');
+  const [lookingFor, setLookingFor] = useState('Diseñadores, Desarrolladores, Gerentes de Producto');
 
   const isMobile = useMediaQuery('(max-width: 480px)');
   const headlineFont = isMobile ? 72 : 96;
@@ -52,50 +52,50 @@ function App() {
       link.href = dataURL;
       link.click();
       // TODO: Implement scaleAndCrop logic for different sizes (X, LinkedIn, IG)
-      console.log("Basic PNG export initiated. Need to add specific sizes.")
+      console.log("Exportación básica PNG iniciada. Es necesario agregar tamaños específicos.");
     }
   };
 
   return (
     <main className="container mx-auto p-4 flex flex-col lg:flex-row gap-8">
       <div className="flex-1 flex flex-col gap-4">
-        <h1 className="text-2xl font-bold mb-4">Social Card Generator</h1>
-        
+        <h1 className="text-2xl font-bold mb-4">AI Hackathon - Idea Card Generator</h1>
+
         <div>
-          <Label htmlFor="theme">Theme</Label>
+          <Label htmlFor="theme">Tema</Label>
           <Select value={theme} onValueChange={(value) => setTheme(value as ThemeName)}>
             <SelectTrigger id="theme">
-              <SelectValue placeholder="Select theme" />
+              <SelectValue placeholder="Selecciona un tema" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="latamWhite">LATAM White</SelectItem>
-              <SelectItem value="default">Default (Dark)</SelectItem>
+              <SelectItem value="white">Blanco</SelectItem>
+              <SelectItem value="default">Oscuro</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div>
-          <Label htmlFor="teamName">Team Name</Label>
+          <Label htmlFor="teamName">Nombre del Equipo</Label>
           <Input id="teamName" value={teamName} onChange={(e) => setTeamName(e.target.value)} />
         </div>
 
         <div>
-          <Label htmlFor="idea">Idea Headline</Label>
+          <Label htmlFor="idea">Título de la Idea</Label>
           <Input id="idea" value={idea} onChange={(e) => setIdea(e.target.value)} />
         </div>
 
         <div>
-          <Label htmlFor="lookingFor">Looking For</Label>
+          <Label htmlFor="lookingFor">Buscando</Label>
           <Input id="lookingFor" value={lookingFor} onChange={(e) => setLookingFor(e.target.value)} />
         </div>
 
-        <Button onClick={handleExport} className="mt-4">Export as PNG (Base)</Button>
+        <Button onClick={handleExport} className="mt-4">Exportar como PNG (Base)</Button>
       </div>
 
       <div className="flex-1 flex items-center justify-center lg:p-8">
         {/* Preview Area */}
         <div className="w-full max-w-xl aspect-[16/9] border rounded-lg overflow-hidden shadow-lg">
-          <CardCanvas 
+          <CardCanvas
             theme={theme}
             teamName={teamName}
             idea={idea}

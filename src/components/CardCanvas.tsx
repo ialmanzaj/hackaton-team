@@ -90,11 +90,11 @@ const CardCanvas: React.FC<CardCanvasProps> = ({
       if (!ctx) return;
 
       try {
-        // --- Font Loading Check --- 
+        // --- Font Loading Check ---
         await document.fonts.ready; // Wait for 'Inter' (and others) to be ready
-        console.log('Fonts ready, proceeding with drawing.');
+        console.log('Fuentes listas, procediendo a dibujar.'); // Spanish translation
       } catch (error) {
-        console.error('Font loading failed:', error);
+        console.error('Error al cargar fuentes:', error); // Spanish translation
         // Optionally proceed with fallback fonts or show an error
       }
 
@@ -136,16 +136,16 @@ const CardCanvas: React.FC<CardCanvasProps> = ({
       ctx.textAlign = 'left';
       const lookingForY = ideaBlockBottom + 80; // Spacing below idea block
       // Ensure lookingFor line itself doesn't start below maxContentY
-      if (lookingForY < maxContentY) { 
+      if (lookingForY < maxContentY) {
         // Also check if the *bottom* of the lookingFor line would exceed maxContentY
         if (lookingForY + lookingForSize <= maxContentY) {
-             ctx.fillText(`Looking for: ${lookingFor}`, SAFE_PADDING, lookingForY);
+             ctx.fillText(`Buscando: ${lookingFor}`, SAFE_PADDING, lookingForY); // Spanish translation
         } else {
-            console.warn("'Looking For' text truncated due to space constraints.");
+            console.warn("Texto 'Buscando' truncado por falta de espacio."); // Spanish translation
             // Optionally draw truncated text or nothing
         }
       } else {
-           console.warn("'Looking For' text skipped entirely due to space constraints.");
+           console.warn("Texto 'Buscando' omitido completamente por falta de espacio."); // Spanish translation
       }
 
       // Draw Bottom Tags
