@@ -4,7 +4,8 @@ import { THEMES, ThemeName } from '@/lib/theme'; // Assuming '@' alias maps to '
 // Constants based on PRD
 const BASE_WIDTH = 1600;
 const BASE_HEIGHT = 900;
-const BOTTOM_TAG_TEXT = 'ai-hackathon.co';
+const BOTTOM_TAG_TEXT_LEFT = 'ai-hackathon.co';
+const BOTTOM_TAG_TEXT_RIGHT = '#LATAMACELERA';
 const BOTTOM_TAG_HEIGHT = 40;
 const SAFE_PADDING = 120; // Left/Right/Top padding
 const FONT_FAMILY = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'; // With fallback
@@ -121,14 +122,20 @@ const CardCanvas: React.FC<CardCanvasProps> = ({
         ctx.fillText(`Looking for: ${lookingFor}`, SAFE_PADDING, lookingForY);
       }
 
-      // 5. Draw Bottom Tag (Updated: Text and constants)
-      ctx.font = `600 16px ${FONT_FAMILY}`;
+      // Draw Bottom Tags
+      ctx.font = `600 24px ${FONT_FAMILY}`;
       ctx.fillStyle = '#FF2A2A'; // Always red
-      ctx.textAlign = 'left';
       ctx.textBaseline = 'middle'; // Align vertically in the bar
       const safeBottom = BASE_HEIGHT - BOTTOM_TAG_HEIGHT;
       const tagY = safeBottom + (BOTTOM_TAG_HEIGHT / 2); // Center vertically
-      ctx.fillText(BOTTOM_TAG_TEXT, SAFE_PADDING, tagY); // Use updated constant
+      
+      // Left Tag
+      ctx.textAlign = 'left';
+      ctx.fillText(BOTTOM_TAG_TEXT_LEFT, SAFE_PADDING, tagY); 
+
+      // Right Tag
+      ctx.textAlign = 'right';
+      ctx.fillText(BOTTOM_TAG_TEXT_RIGHT, BASE_WIDTH - SAFE_PADDING, tagY);
 
     };
 
